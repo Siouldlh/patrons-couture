@@ -199,13 +199,44 @@ if uploaded_file is not None:
         
         # Vérifier que le PDF n'est pas vide
         if len(st.session_state.processed_pdf) > 0:
-            st.download_button(
-                label="📥 Télécharger le PDF traité",
-                data=st.session_state.processed_pdf,
-                file_name=st.session_state.output_filename,
-                mime="application/pdf",
-                type="primary"
-            )
+            # Essayer plusieurs méthodes de téléchargement
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.download_button(
+                    label="📥 Télécharger le PDF (Méthode 1)",
+                    data=st.session_state.processed_pdf,
+                    file_name=st.session_state.output_filename,
+                    mime="application/pdf",
+                    type="primary"
+                )
+            
+            with col2:
+                # Méthode alternative avec base64
+                import base64
+                b64 = base64.b64encode(st.session_state.processed_pdf).decode()
+                href = f'<a href="data:application/pdf;base64,{b64}" download="{st.session_state.output_filename}" style="background-color: #ff6b6b; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">📥 Télécharger le PDF (Méthode 2)</a>'
+                st.markdown(href, unsafe_allow_html=True)
+            
+            # Afficher un lien de téléchargement direct
+            st.markdown("---")
+            st.markdown("### 🔗 Lien de téléchargement direct")
+            st.code(f"Nom du fichier: {st.session_state.output_filename}")
+            st.code(f"Taille: {len(st.session_state.processed_pdf)} bytes")
+            
+            # Bouton pour sauvegarder localement (alternative)
+            if st.button("💾 Sauvegarder le PDF traité", type="secondary"):
+                # Créer un fichier temporaire
+                import tempfile
+                import os
+                
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+                    tmp_file.write(st.session_state.processed_pdf)
+                    tmp_path = tmp_file.name
+                
+                st.success(f"✅ PDF sauvegardé temporairement: {tmp_path}")
+                st.info("💡 Vous pouvez maintenant copier ce fichier vers votre dossier de téléchargements")
+                
         else:
             st.error("❌ Le PDF traité est vide. Veuillez retraiter le fichier.")
     else:
