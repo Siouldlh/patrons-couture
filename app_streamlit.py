@@ -75,7 +75,7 @@ if uploaded_file is not None:
                 # Vérifier qu'on a des pages
                 if len(doc) == 0:
                     st.error("❌ Aucune page trouvée dans le PDF")
-                    return
+                    st.stop()
                 
                 # Créer un nouveau document avec les pages sélectionnées
                 pages_doc = fitz.open()
@@ -88,7 +88,7 @@ if uploaded_file is not None:
                 # Vérifier qu'on a des pages
                 if len(pages_doc) == 0:
                     st.error("❌ Aucune page trouvée dans la plage spécifiée")
-                    return
+                    st.stop()
                 
                 # Supprimer les marges
                 st.info("✂️ Suppression des marges...")
