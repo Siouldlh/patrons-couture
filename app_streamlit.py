@@ -155,15 +155,11 @@ if uploaded_file is not None:
                 for col in range(grid_cols):
                     # Laisser la case en haut à droite vide (ligne 0, colonne 3)
                     if row == 0 and col == 3:
-                        st.write(f"Case vide: Ligne {row + 1}, Colonne {col + 1} - Position laissée vide")
                         continue
                     
                     if page_index < len(pages_doc):
                         x = margin_x + col * page_width
                         y = margin_y + row * page_height
-                        
-                        # Debug: Afficher la position de chaque page
-                        st.write(f"Page {page_index + 1}: Ligne {row + 1}, Colonne {col + 1} - Position ({x:.1f}, {y:.1f})")
                         
                         dest_rect = fitz.Rect(
                             x - overlap_points, y - overlap_points,
