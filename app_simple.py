@@ -55,6 +55,12 @@ if uploaded_file is not None:
     # Afficher les informations du fichier
     st.success(f"✅ Fichier chargé : {uploaded_file.name}")
     
+    # Initialiser la variable de session pour stocker le PDF traité
+    if 'processed_pdf' not in st.session_state:
+        st.session_state.processed_pdf = None
+    if 'output_filename' not in st.session_state:
+        st.session_state.output_filename = None
+    
     # Bouton de traitement
     if st.button("🚀 Traiter le PDF", type="primary"):
         with st.spinner("Traitement en cours..."):
@@ -71,6 +77,13 @@ if uploaded_file is not None:
                 for page_num in range(start_page - 1, end_page):
                     if page_num < len(doc):
                         pages_doc.insert_pdf(doc, from_page=page_num, to_page=page_num)
+                
+                doc.close()
+                
+                # Vérifier qu'on a des pages
+                if len(pages_doc) == 0:
+                    st.error("❌ Aucune page trouvée dans la plage spécifiée")
+                    return
                 
                 # Supprimer les marges
                 st.info("✂️ Suppression des marges...")
@@ -142,19 +155,24 @@ if uploaded_file is not None:
                 output_doc.close()
                 pages_doc.close()
                 
+                # Stocker le PDF traité dans la session
+                st.session_state.processed_pdf = output_bytes
+                st.session_state.output_filename = f"{uploaded_file.name.split('.')[0]}_A0_sans_marges.pdf"
+                
                 # Proposer le téléchargement
                 st.success("✅ Traitement terminé !")
                 
-                output_filename = f"{uploaded_file.name.split('.')[0]}_A0_sans_marges.pdf"
-                st.download_button(
-                    label="📥 Télécharger le PDF traité",
-                    data=output_bytes,
-                    file_name=output_filename,
-                    mime="application/pdf"
-                )
-                
             except Exception as e:
                 st.error(f"❌ Erreur lors du traitement : {str(e)}")
+    
+    # Afficher le bouton de téléchargement seulement si un PDF a été traité
+    if st.session_state.processed_pdf is not None:
+        st.download_button(
+            label="📥 Télécharger le PDF traité",
+            data=st.session_state.processed_pdf,
+            file_name=st.session_state.output_filename,
+            mime="application/pdf"
+        )
 
 # Footer
 st.markdown("---")
