@@ -179,6 +179,9 @@ if uploaded_file is not None:
             st.session_state.processed_pdf = output_bytes
             st.session_state.output_filename = f"{uploaded_file.name.split('.')[0]}_A0_sans_marges.pdf"
             
+            # Debug: Vérifier la taille du PDF
+            st.write(f"🔍 **Debug:** PDF créé avec {len(output_bytes)} bytes")
+            
             # Étape 5: Terminé
             with progress_container:
                 st.success("✅ Traitement terminé !")
@@ -190,12 +193,23 @@ if uploaded_file is not None:
     
     # Afficher le bouton de téléchargement seulement si un PDF a été traité
     if st.session_state.processed_pdf is not None:
-        st.download_button(
-            label="📥 Télécharger le PDF traité",
-            data=st.session_state.processed_pdf,
-            file_name=st.session_state.output_filename,
-            mime="application/pdf"
-        )
+        st.write("🔍 **Debug:** PDF traité trouvé dans la session")
+        st.write(f"📁 Nom du fichier: {st.session_state.output_filename}")
+        st.write(f"📊 Taille du PDF: {len(st.session_state.processed_pdf)} bytes")
+        
+        # Vérifier que le PDF n'est pas vide
+        if len(st.session_state.processed_pdf) > 0:
+            st.download_button(
+                label="📥 Télécharger le PDF traité",
+                data=st.session_state.processed_pdf,
+                file_name=st.session_state.output_filename,
+                mime="application/pdf",
+                type="primary"
+            )
+        else:
+            st.error("❌ Le PDF traité est vide. Veuillez retraiter le fichier.")
+    else:
+        st.write("ℹ️ Aucun PDF traité trouvé. Cliquez sur 'Traiter le PDF' d'abord.")
 
 # Footer
 st.markdown("---")
