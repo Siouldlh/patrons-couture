@@ -19,8 +19,8 @@ Transformez vos PDFs de patrons de couture en grille A0 parfaite, prête à impr
 ```bash
 git clone https://github.com/Siouldlh/patrons-couture.git
 cd patrons-couture
-pip install -r requirements_streamlit.txt
-streamlit run app_streamlit.py
+pip install -r requirements.txt
+streamlit run app_simple.py
 ```
 
 ## 🎯 Fonctionnalités
@@ -53,8 +53,9 @@ streamlit run app_streamlit.py
 
 ```
 patrons-couture/
-├── app_streamlit.py          # Application web principale
-├── requirements_streamlit.txt # Dépendances Python
+├── app_simple.py             # Application web simplifiée (recommandée)
+├── app_streamlit.py          # Application web complète
+├── requirements.txt          # Dépendances Python minimales
 ├── .streamlit/
 │   └── config.toml           # Configuration Streamlit
 ├── process_pdf.py            # Script en ligne de commande
@@ -66,9 +67,7 @@ patrons-couture/
 
 - **Python 3.7+**
 - **Streamlit** - Interface web
-- **PyMuPDF (fitz)** - Manipulation PDF
-- **PyPDF2** - Lecture PDF
-- **ReportLab** - Génération PDF
+- **PyMuPDF (fitz)** - Manipulation PDF (version simplifiée)
 
 ## 📞 Support
 
