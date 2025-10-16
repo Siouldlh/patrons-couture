@@ -157,6 +157,9 @@ if uploaded_file is not None:
                         x = margin_x + col * page_width
                         y = margin_y + row * page_height
                         
+                        # Debug: Afficher la position de chaque page
+                        st.write(f"Page {page_index + 1}: Ligne {row + 1}, Colonne {col + 1} - Position ({x:.1f}, {y:.1f})")
+                        
                         dest_rect = fitz.Rect(
                             x - overlap_points, y - overlap_points,
                             x + page_width + overlap_points, 
@@ -165,6 +168,11 @@ if uploaded_file is not None:
                         
                         output_page.show_pdf_page(dest_rect, pages_doc, page_index)
                         page_index += 1
+                    else:
+                        # Si on a fini toutes les pages, sortir de la boucle
+                        break
+                if page_index >= len(pages_doc):
+                    break
             
             # Étape 4: Sauvegarder
             with progress_container:
