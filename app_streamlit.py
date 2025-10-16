@@ -194,14 +194,12 @@ if uploaded_file is not None:
     # Afficher le PDF traité directement dans la page
     if st.session_state.processed_pdf is not None:
         st.success("✅ **PDF traité avec succès !**")
-        st.write(f"📁 **Nom du fichier:** {st.session_state.output_filename}")
-        st.write(f"📊 **Taille:** {len(st.session_state.processed_pdf):,} bytes")
         
         # Vérifier que le PDF n'est pas vide
         if len(st.session_state.processed_pdf) > 0:
             # Afficher le PDF directement dans la page
             st.markdown("---")
-            st.markdown("### 📄 **Aperçu du PDF traité**")
+            st.markdown("### 📄 **Votre PDF traité est prêt !**")
             st.markdown("*Cliquez sur les trois points (⋮) en haut à droite du PDF pour le télécharger*")
             
             # Encoder en base64 pour l'affichage
@@ -210,38 +208,22 @@ if uploaded_file is not None:
             pdf_display = f"""
             <iframe src="data:application/pdf;base64,{b64_pdf}" 
                     width="100%" 
-                    height="600" 
+                    height="700" 
                     type="application/pdf"
-                    style="border: 2px solid #ddd; border-radius: 10px;">
+                    style="border: 2px solid #ddd; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
             </iframe>
             """
             st.markdown(pdf_display, unsafe_allow_html=True)
             
-            # Instructions pour télécharger
+            # Informations simples
             st.markdown("---")
-            st.markdown("### 📥 **Comment télécharger le PDF :**")
-            st.markdown("""
-            1. **Cliquez sur les trois points (⋮)** en haut à droite du PDF ci-dessus
-            2. **Sélectionnez "Télécharger"** dans le menu
-            3. **Choisissez l'emplacement** de sauvegarde sur votre ordinateur
-            4. **Renommez le fichier** si nécessaire
-            """)
-            
-            # Alternative: Lien de téléchargement direct
-            st.markdown("### 🔗 **Lien de téléchargement direct :**")
-            download_link = f'<a href="data:application/pdf;base64,{b64_pdf}" download="{st.session_state.output_filename}" style="background-color: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-size: 16px; font-weight: bold;">📥 TÉLÉCHARGER LE PDF</a>'
-            st.markdown(download_link, unsafe_allow_html=True)
-            
-            # Informations techniques
-            st.markdown("---")
-            st.markdown("### 🔧 **Informations techniques :**")
-            col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns(3)
             with col1:
-                st.code(f"Nom: {st.session_state.output_filename}")
-                st.code(f"Taille: {len(st.session_state.processed_pdf):,} bytes")
+                st.metric("📁 Fichier", st.session_state.output_filename)
             with col2:
-                st.code(f"Format: PDF")
-                st.code(f"Pages: {grid_rows}×{grid_cols} grille")
+                st.metric("📊 Taille", f"{len(st.session_state.processed_pdf):,} bytes")
+            with col3:
+                st.metric("🔲 Grille", f"{grid_rows}×{grid_cols}")
                 
         else:
             st.error("❌ Le PDF traité est vide. Veuillez retraiter le fichier.")
