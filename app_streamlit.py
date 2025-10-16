@@ -153,6 +153,11 @@ if uploaded_file is not None:
             page_index = 0
             for row in range(grid_rows):
                 for col in range(grid_cols):
+                    # Laisser la case en haut à droite vide (ligne 0, colonne 3)
+                    if row == 0 and col == 3:
+                        st.write(f"Case vide: Ligne {row + 1}, Colonne {col + 1} - Position laissée vide")
+                        continue
+                    
                     if page_index < len(pages_doc):
                         x = margin_x + col * page_width
                         y = margin_y + row * page_height
