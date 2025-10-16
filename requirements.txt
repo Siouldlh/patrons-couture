@@ -1,5 +1,2 @@
 streamlit
-PyPDF2
-reportlab
-Pillow
 PyMuPDF
