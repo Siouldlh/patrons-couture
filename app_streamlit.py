@@ -31,6 +31,15 @@ with st.sidebar:
     st.subheader("Grille")
     grid_cols = st.number_input("Colonnes", min_value=1, max_value=10, value=4)
     grid_rows = st.number_input("Lignes", min_value=1, max_value=10, value=4)
+    
+    # Initialiser la sélection des cases dans la session state
+    if 'grid_selection' not in st.session_state:
+        st.session_state.grid_selection = {}
+    
+    # Réinitialiser si la taille de la grille change
+    grid_key = f"{grid_rows}x{grid_cols}"
+    if grid_key not in st.session_state.grid_selection:
+        st.session_state.grid_selection[grid_key] = {}
 
 # Zone principale
 col1, col2 = st.columns([2, 1])
@@ -48,9 +57,77 @@ with col2:
     st.markdown("""
     1. **Uploadez** votre PDF de patron
     2. **Ajustez** les paramètres dans la barre latérale
-    3. **Cliquez** sur "Traiter le PDF"
-    4. **Téléchargez** le résultat !
+    3. **Sélectionnez** les cases de la grille ci-dessous
+    4. **Cliquez** sur "Traiter le PDF"
+    5. **Téléchargez** le résultat !
     """)
+
+# Section pour sélectionner les cases de la grille
+st.markdown("---")
+st.header("🔲 Sélection des cases de la grille")
+st.markdown("**Cochez les cases où vous voulez placer les pages (dans l'ordre de lecture : de gauche à droite, de haut en bas)**")
+
+# Créer la grille de sélection
+current_grid_key = f"{grid_rows}x{grid_cols}"
+if current_grid_key not in st.session_state.grid_selection:
+    st.session_state.grid_selection[current_grid_key] = {}
+
+# Boutons pour sélectionner/désélectionner toutes les cases
+col_btn1, col_btn2 = st.columns(2)
+with col_btn1:
+    if st.button("✅ Sélectionner toutes les cases"):
+        for row in range(grid_rows):
+            for col in range(grid_cols):
+                cell_key = f"{row}_{col}"
+                st.session_state.grid_selection[current_grid_key][cell_key] = True
+        st.rerun()
+with col_btn2:
+    if st.button("❌ Désélectionner toutes les cases"):
+        for row in range(grid_rows):
+            for col in range(grid_cols):
+                cell_key = f"{row}_{col}"
+                st.session_state.grid_selection[current_grid_key][cell_key] = False
+        st.rerun()
+
+# Créer une grille visuelle avec des checkboxes
+grid_container = st.container()
+with grid_container:
+    selected_cells = []
+    
+    # En-têtes de colonnes
+    header_cols = st.columns(grid_cols)
+    for col in range(grid_cols):
+        with header_cols[col]:
+            st.markdown(f"**Col {col+1}**", help=f"Colonne {col+1}")
+    
+    # Créer les lignes avec checkboxes
+    for row in range(grid_rows):
+        cols = st.columns(grid_cols)
+        
+        for col in range(grid_cols):
+            cell_key = f"{row}_{col}"
+            
+            # Initialiser si nécessaire
+            if cell_key not in st.session_state.grid_selection[current_grid_key]:
+                st.session_state.grid_selection[current_grid_key][cell_key] = False
+            
+            # Afficher le checkbox dans la bonne colonne
+            with cols[col]:
+                # Checkbox pour chaque case avec label plus clair
+                checked = st.checkbox(
+                    f"L{row+1}-C{col+1}",
+                    value=st.session_state.grid_selection[current_grid_key][cell_key],
+                    key=f"cell_{row}_{col}",
+                    label_visibility="visible",
+                    help=f"Case ligne {row+1}, colonne {col+1}"
+                )
+                st.session_state.grid_selection[current_grid_key][cell_key] = checked
+                
+                if checked:
+                    selected_cells.append((row, col))
+
+# Afficher le nombre de cases sélectionnées
+st.info(f"📊 **{len(selected_cells)} case(s) sélectionnée(s)** sur {grid_rows * grid_cols} cases disponibles")
 
 if uploaded_file is not None:
     # Afficher les informations du fichier
@@ -150,29 +227,43 @@ if uploaded_file is not None:
             
             overlap_points = overlap_mm * 2.834
             
-            page_index = 0
+            # Recalculer la clé de la grille pour être sûr qu'elle est à jour
+            current_grid_key = f"{grid_rows}x{grid_cols}"
+            
+            # Récupérer les cases sélectionnées dans l'ordre (de gauche à droite, de haut en bas)
+            selected_cells_ordered = []
             for row in range(grid_rows):
                 for col in range(grid_cols):
-                    # Laisser la case en haut à droite vide (ligne 0, colonne 3)
-                    if row == 0 and col == 3:
-                        continue
+                    cell_key = f"{row}_{col}"
+                    if st.session_state.grid_selection.get(current_grid_key, {}).get(cell_key, False):
+                        selected_cells_ordered.append((row, col))
+            
+            # Vérifier qu'il y a au moins une case sélectionnée
+            if len(selected_cells_ordered) == 0:
+                st.error("❌ Veuillez sélectionner au moins une case dans la grille")
+                st.stop()
+            
+            # Vérifier qu'on a assez de pages
+            if len(selected_cells_ordered) > len(pages_doc):
+                st.warning(f"⚠️ Vous avez sélectionné {len(selected_cells_ordered)} cases mais seulement {len(pages_doc)} page(s) disponible(s). Seules les {len(pages_doc)} premières cases seront remplies.")
+            
+            # Placer les pages dans les cases sélectionnées
+            page_index = 0
+            for row, col in selected_cells_ordered:
+                if page_index < len(pages_doc):
+                    x = margin_x + col * page_width
+                    y = margin_y + row * page_height
                     
-                    if page_index < len(pages_doc):
-                        x = margin_x + col * page_width
-                        y = margin_y + row * page_height
-                        
-                        dest_rect = fitz.Rect(
-                            x - overlap_points, y - overlap_points,
-                            x + page_width + overlap_points, 
-                            y + page_height + overlap_points
-                        )
-                        
-                        output_page.show_pdf_page(dest_rect, pages_doc, page_index)
-                        page_index += 1
-                    else:
-                        # Si on a fini toutes les pages, sortir de la boucle
-                        break
-                if page_index >= len(pages_doc):
+                    dest_rect = fitz.Rect(
+                        x - overlap_points, y - overlap_points,
+                        x + page_width + overlap_points, 
+                        y + page_height + overlap_points
+                    )
+                    
+                    output_page.show_pdf_page(dest_rect, pages_doc, page_index)
+                    page_index += 1
+                else:
+                    # Si on a fini toutes les pages, sortir de la boucle
                     break
             
             # Étape 4: Sauvegarder
