@@ -20,13 +20,14 @@ Transformez vos PDFs de patrons de couture en grille A0 parfaite, prête à impr
 git clone https://github.com/Siouldlh/patrons-couture.git
 cd patrons-couture
 pip install -r requirements.txt
-streamlit run app_simple.py
+streamlit run app_streamlit.py
 ```
 
 ## 🎯 Fonctionnalités
 
 - ✅ **Upload de PDF** : Glisser-déposer simple
-- ✅ **Paramètres ajustables** : Marge, chevauchement, grille
+- ✅ **Paramètres ajustables** : Marge, chevauchement, grille personnalisable
+- ✅ **Sélection de grille** : Choisissez la taille (ex: 5x5) et les cases à utiliser
 - ✅ **Traitement automatique** : Suppression des marges
 - ✅ **Centrage intelligent** : Patron centré sur A0
 - ✅ **Téléchargement** : PDF prêt à imprimer
@@ -39,9 +40,10 @@ streamlit run app_simple.py
    - Pages de début/fin
    - Marge à supprimer (0-5 cm)
    - Chevauchement (0-10 mm)
-   - Configuration de grille
-3. **Cliquez** sur "Traiter le PDF"
-4. **Téléchargez** le résultat !
+   - Taille de la grille (lignes × colonnes)
+3. **Sélectionnez** les cases de la grille où placer les pages
+4. **Cliquez** sur "Traiter le PDF"
+5. **Téléchargez** le résultat !
 
 ## 🔧 Paramètres recommandés
 
@@ -53,13 +55,10 @@ streamlit run app_simple.py
 
 ```
 patrons-couture/
-├── app_simple.py             # Application web simplifiée (recommandée)
-├── app_streamlit.py          # Application web complète
-├── requirements.txt          # Dépendances Python minimales
+├── app_streamlit.py          # Application web principale
+├── requirements.txt          # Dépendances Python
 ├── .streamlit/
 │   └── config.toml           # Configuration Streamlit
-├── process_pdf.py            # Script en ligne de commande
-├── patron_processor.py       # Interface graphique (tkinter)
 └── README.md                 # Documentation
 ```
 
