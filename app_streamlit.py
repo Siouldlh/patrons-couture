@@ -242,23 +242,25 @@ if uploaded_file is not None:
             total_width = grid_cols * page_width
             total_height = grid_rows * page_height
             
-            # Vérifier si la grille dépasse le format choisi et ajuster si nécessaire
-            scale_factor = 1.0
-            if total_width > output_width or total_height > output_height:
-                # Calculer le facteur d'échelle nécessaire pour que la grille rentre
-                scale_x = (output_width * 0.95) / total_width  # 95% pour laisser une petite marge
-                scale_y = (output_height * 0.95) / total_height
-                scale_factor = min(scale_x, scale_y)
-                
-                # Ajuster les dimensions des pages
-                page_width = page_width * scale_factor
-                page_height = page_height * scale_factor
-                
-                # Recalculer la taille totale avec les nouvelles dimensions
-                total_width = grid_cols * page_width
-                total_height = grid_rows * page_height
-                
+            # Calculer le facteur d'échelle optimal pour utiliser au mieux l'espace disponible
+            # On utilise 95% de l'espace pour laisser une petite marge
+            scale_x = (output_width * 0.95) / total_width
+            scale_y = (output_height * 0.95) / total_height
+            scale_factor = min(scale_x, scale_y)
+            
+            # Si la grille est trop grande, on réduit. Si elle est trop petite, on agrandit.
+            if scale_factor < 1.0:
                 st.warning(f"⚠️ La grille est trop grande pour le format {output_format}. Les pages ont été redimensionnées à {scale_factor*100:.1f}% pour qu'elles rentrent.")
+            elif scale_factor > 1.0:
+                st.info(f"ℹ️ La grille est agrandie à {scale_factor*100:.1f}% pour mieux remplir le format {output_format}.")
+            
+            # Ajuster les dimensions des pages
+            page_width = page_width * scale_factor
+            page_height = page_height * scale_factor
+            
+            # Recalculer la taille totale avec les nouvelles dimensions
+            total_width = grid_cols * page_width
+            total_height = grid_rows * page_height
             
             # Centrage
             margin_x = max(0, (output_width - total_width) / 2)
