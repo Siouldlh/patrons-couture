@@ -243,9 +243,9 @@ if uploaded_file is not None:
             total_height = grid_rows * page_height
             
             # Calculer le facteur d'échelle optimal pour utiliser au mieux l'espace disponible
-            # On utilise 95% de l'espace pour laisser une petite marge
-            scale_x = (output_width * 0.95) / total_width
-            scale_y = (output_height * 0.95) / total_height
+            # On utilise 98% de l'espace pour maximiser le remplissage
+            scale_x = (output_width * 0.98) / total_width
+            scale_y = (output_height * 0.98) / total_height
             scale_factor = min(scale_x, scale_y)
             
             # Si la grille est trop grande, on réduit. Si elle est trop petite, on agrandit.
@@ -253,6 +253,9 @@ if uploaded_file is not None:
                 st.warning(f"⚠️ La grille est trop grande pour le format {output_format}. Les pages ont été redimensionnées à {scale_factor*100:.1f}% pour qu'elles rentrent.")
             elif scale_factor > 1.0:
                 st.info(f"ℹ️ La grille est agrandie à {scale_factor*100:.1f}% pour mieux remplir le format {output_format}.")
+            
+            # Debug: Afficher les dimensions
+            st.write(f"🔍 **Debug:** Format {output_format} {orientation} = {output_width}×{output_height} pts | Grille finale = {total_width:.1f}×{total_height:.1f} pts | Facteur d'échelle = {scale_factor:.3f}")
             
             # Ajuster les dimensions des pages
             page_width = page_width * scale_factor
@@ -295,10 +298,12 @@ if uploaded_file is not None:
                     x = margin_x + col * page_width
                     y = margin_y + row * page_height
                     
+                    # Le rectangle de destination utilise les dimensions exactes calculées
+                    # Le chevauchement sera géré par le positionnement si nécessaire
                     dest_rect = fitz.Rect(
-                        x - overlap_points, y - overlap_points,
-                        x + page_width + overlap_points, 
-                        y + page_height + overlap_points
+                        x, y,
+                        x + page_width, 
+                        y + page_height
                     )
                     
                     output_page.show_pdf_page(dest_rect, pages_doc, page_index)
