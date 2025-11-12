@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 st.title("✂️ Processeur de Patrons PDF")
-st.markdown("Transformez vos PDFs de patrons en grille A0 parfaite !")
+st.markdown("Transformez vos PDFs de patrons en grille parfaite !")
 st.markdown("*Développé par Siouldlh*")
 
 # Sidebar pour les paramètres
@@ -29,6 +29,7 @@ with st.sidebar:
     
     # Configuration de la grille
     st.subheader("Grille")
+    output_format = st.selectbox("Format de sortie", ["A0", "A1"], index=0, help="Choisissez le format de la page de sortie")
     grid_cols = st.number_input("Colonnes", min_value=1, max_value=10, value=4)
     grid_rows = st.number_input("Lignes", min_value=1, max_value=10, value=4)
     
@@ -214,16 +215,23 @@ if uploaded_file is not None:
             page_height = first_page.rect.height
             
             output_doc = fitz.open()
-            # Format A0 : 841 x 1189 mm = 2384 x 3370 points
-            A0_width = 2384
-            A0_height = 3370
-            output_page = output_doc.new_page(width=A0_width, height=A0_height)
+            # Dimensions selon le format choisi
+            # A0 : 841 x 1189 mm = 2384 x 3370 points
+            # A1 : 594 x 841 mm = 1684 x 2384 points
+            if output_format == "A0":
+                output_width = 2384
+                output_height = 3370
+            else:  # A1
+                output_width = 1684
+                output_height = 2384
+            
+            output_page = output_doc.new_page(width=output_width, height=output_height)
             
             # Centrage
             total_width = grid_cols * page_width
             total_height = grid_rows * page_height
-            margin_x = max(0, (A0_width - total_width) / 2)
-            margin_y = max(0, (A0_height - total_height) / 2)
+            margin_x = max(0, (output_width - total_width) / 2)
+            margin_y = max(0, (output_height - total_height) / 2)
             
             overlap_points = overlap_mm * 2.834
             
@@ -277,7 +285,8 @@ if uploaded_file is not None:
             
             # Stocker le PDF traité dans la session
             st.session_state.processed_pdf = output_bytes
-            st.session_state.output_filename = f"{uploaded_file.name.split('.')[0]}_A0_sans_marges.pdf"
+            st.session_state.output_filename = f"{uploaded_file.name.split('.')[0]}_{output_format}_sans_marges.pdf"
+            st.session_state.output_format = output_format
             
             # Debug: Vérifier la taille du PDF
             st.write(f"🔍 **Debug:** PDF créé avec {len(output_bytes)} bytes")
@@ -317,13 +326,16 @@ if uploaded_file is not None:
             
             # Informations simples
             st.markdown("---")
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3, col4 = st.columns(4)
             with col1:
                 st.metric("📁 Fichier", st.session_state.output_filename)
             with col2:
                 st.metric("📊 Taille", f"{len(st.session_state.processed_pdf):,} bytes")
             with col3:
                 st.metric("🔲 Grille", f"{grid_rows}×{grid_cols}")
+            with col4:
+                format_display = st.session_state.get('output_format', 'A0')
+                st.metric("📐 Format", format_display)
                 
         else:
             st.error("❌ Le PDF traité est vide. Veuillez retraiter le fichier.")
