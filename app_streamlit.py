@@ -30,6 +30,7 @@ with st.sidebar:
     # Configuration de la grille
     st.subheader("Grille")
     output_format = st.selectbox("Format de sortie", ["A0", "A1"], index=0, help="Choisissez le format de la page de sortie")
+    orientation = st.selectbox("Orientation", ["Portrait", "Paysage"], index=0, help="Choisissez l'orientation de la page de sortie")
     grid_cols = st.number_input("Colonnes", min_value=1, max_value=10, value=4)
     grid_rows = st.number_input("Lignes", min_value=1, max_value=10, value=4)
     
@@ -216,14 +217,24 @@ if uploaded_file is not None:
             
             output_doc = fitz.open()
             # Dimensions selon le format choisi
-            # A0 : 841 x 1189 mm = 2384 x 3370 points
-            # A1 : 594 x 841 mm = 1684 x 2384 points
+            # A0 : 841 x 1189 mm = 2384 x 3370 points (portrait)
+            # A0 : 1189 x 841 mm = 3370 x 2384 points (paysage)
+            # A1 : 594 x 841 mm = 1684 x 2384 points (portrait)
+            # A1 : 841 x 594 mm = 2384 x 1684 points (paysage)
             if output_format == "A0":
-                output_width = 2384
-                output_height = 3370
+                if orientation == "Portrait":
+                    output_width = 2384
+                    output_height = 3370
+                else:  # Paysage
+                    output_width = 3370
+                    output_height = 2384
             else:  # A1
-                output_width = 1684
-                output_height = 2384
+                if orientation == "Portrait":
+                    output_width = 1684
+                    output_height = 2384
+                else:  # Paysage
+                    output_width = 2384
+                    output_height = 1684
             
             output_page = output_doc.new_page(width=output_width, height=output_height)
             
@@ -305,8 +316,9 @@ if uploaded_file is not None:
             
             # Stocker le PDF traité dans la session
             st.session_state.processed_pdf = output_bytes
-            st.session_state.output_filename = f"{uploaded_file.name.split('.')[0]}_{output_format}_sans_marges.pdf"
-            st.session_state.output_format = output_format
+            orientation_short = "P" if orientation == "Portrait" else "L"
+            st.session_state.output_filename = f"{uploaded_file.name.split('.')[0]}_{output_format}_{orientation_short}_sans_marges.pdf"
+            st.session_state.output_format = f"{output_format} {orientation}"
             
             # Debug: Vérifier la taille du PDF
             st.write(f"🔍 **Debug:** PDF créé avec {len(output_bytes)} bytes")
