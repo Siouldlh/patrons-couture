@@ -227,9 +227,29 @@ if uploaded_file is not None:
             
             output_page = output_doc.new_page(width=output_width, height=output_height)
             
-            # Centrage
+            # Calculer la taille totale nécessaire pour la grille
             total_width = grid_cols * page_width
             total_height = grid_rows * page_height
+            
+            # Vérifier si la grille dépasse le format choisi et ajuster si nécessaire
+            scale_factor = 1.0
+            if total_width > output_width or total_height > output_height:
+                # Calculer le facteur d'échelle nécessaire pour que la grille rentre
+                scale_x = (output_width * 0.95) / total_width  # 95% pour laisser une petite marge
+                scale_y = (output_height * 0.95) / total_height
+                scale_factor = min(scale_x, scale_y)
+                
+                # Ajuster les dimensions des pages
+                page_width = page_width * scale_factor
+                page_height = page_height * scale_factor
+                
+                # Recalculer la taille totale avec les nouvelles dimensions
+                total_width = grid_cols * page_width
+                total_height = grid_rows * page_height
+                
+                st.warning(f"⚠️ La grille est trop grande pour le format {output_format}. Les pages ont été redimensionnées à {scale_factor*100:.1f}% pour qu'elles rentrent.")
+            
+            # Centrage
             margin_x = max(0, (output_width - total_width) / 2)
             margin_y = max(0, (output_height - total_height) / 2)
             
